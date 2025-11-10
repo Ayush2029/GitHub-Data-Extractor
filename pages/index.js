@@ -162,7 +162,7 @@ const ProfileCard = ({ data }) => {
                 <p className="font-semibold text-blue-600 truncate">{repo.name}</p>
                 <p className="text-xs text-gray-600 mt-1 truncate">{repo.description}</p>
                 <div className="flex items-center gap-3 text-xs text-gray-500 mt-2">
-                  <span className="flex items-center gap-1"><FiCode /> {repo.language || 'N/A'}</span>
+                  <span className="flex items-center gap-1"><FiCode /> {data.language || 'N/A'}</span>
                   <span className="flex items-center gap-1"><FiStar /> {repo.stars}</span>
                   <span className="flex items-center gap-1">Commits: {repo.commits}</span>
                 </div>
@@ -199,13 +199,13 @@ export default function Home() {
 
     try {
       // Step 1: Extract links from PDF
-      // --- FIX: Added a trailing slash to the URL ---
-      const extractRes = await fetch('/api/extract/', {
+      // --- FIX: Removed the trailing slash ---
+      const extractRes = await fetch('/api/extract', {
         method: 'POST',
         body: formData,
       });
 
-      // --- FIX: Check if response is ok BEFORE parsing JSON ---
+      // --- Check if response is ok BEFORE parsing JSON ---
       if (!extractRes.ok) {
         // Try to get server error text
         const errorText = await extractRes.text();
@@ -213,7 +213,6 @@ export default function Home() {
       }
       
       const extractData = await extractRes.json();
-      // --- END FIX ---
       
       if (!extractData.links || extractData.links.length === 0) {
         setErrorMessage('No GitHub links were found in this PDF.');
@@ -222,21 +221,20 @@ export default function Home() {
       }
       
       // Step 2: Fetch data from GitHub
-      // --- FIX: Added a trailing slash to the URL ---
-      const githubRes = await fetch('/api/github-data/', {
+      // --- FIX: Removed the trailing slash ---
+      const githubRes = await fetch('/api/github-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ links: extractData.links }),
       });
 
-      // --- FIX: Check if response is ok BEFORE parsing JSON ---
+      // --- Check if response is ok BEFORE parsing JSON ---
       if (!githubRes.ok) {
         const errorText = await githubRes.text();
         throw new Error(`Failed to fetch GitHub data: ${githubRes.status} ${errorText}`);
       }
       
       const githubData = await githubRes.json();
-      // --- END FIX ---
       
       setGithubData(githubData);
       setStatus('ready');
