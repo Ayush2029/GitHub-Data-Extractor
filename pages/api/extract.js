@@ -1,75 +1,68 @@
-import fs from 'fs';
-import path from 'path';
-import formidable from 'formidable';
+// pages/api/extract.js
+import fs from "fs";
+import path from "path";
+import formidable from "formidable";
+import pdfParse from "pdf-parse";
 
+// Disable Next.js default body parser for file uploads
 export const config = {
   api: {
-    bodyParser: false, 
+    bodyParser: false,
   },
 };
 
-const extractHyperlinksFromPDF = async (filePath) => {
-  const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const standardFontsPath = path.join(
-    process.cwd(),
-    'node_modules/pdfjs-dist/standard_fonts/'
-  );
+// Utility to parse PDF and extract text + URLs
+const extractTextAndLinks = async (filePath) => {
+  const dataBuffer = fs.readFileSync(filePath);
+  const data = await pdfParse(dataBuffer);
+  const text = data.text;
 
-  const data = new Uint8Array(fs.readFileSync(filePath));
-  
-  const pdf = await pdfjsLib.getDocument({
-    data,
-    standardFontDataUrl: standardFontsPath,
-  }).promise;
+  // Simple regex for URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urls = text.match(urlRegex) || [];
 
-  let allLinks = [];
-
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page = await pdf.getPage(pageNum);
-    const annotations = await page.getAnnotations();
-    
-    const linksOnPage = annotations
-      .filter(annotation => 
-          annotation.subtype === 'Link' && 
-          annotation.url && 
-          annotation.url.toLowerCase().includes('github.com')
-      )
-      .map(annotation => annotation.url);
-
-    if (linksOnPage.length > 0) {
-      allLinks.push(...linksOnPage);
-    }
-  }
-  
-  return [...new Set(allLinks)];
+  return { text, urls };
 };
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).json({ message: 'Only POST requests allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Only POST requests allowed" });
   }
+
   try {
     const form = formidable({ multiples: false });
-    const [fields, files] = await form.parse(req);
+    const uploadDir = path.join(process.cwd(), "/tmp");
 
-    const file = Array.isArray(files.pdf) ? files.pdf[0] : files.pdf;
-    if (!file) {
-      return res.status(400).json({ error: 'No PDF file uploaded' });
-    }
+    // Ensure tmp directory exists (Vercel supports /tmp for temporary files)
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-    const filePath = file.filepath;
-    const linksArray = await extractHyperlinksFromPDF(filePath);
+    form.uploadDir = uploadDir;
+    form.keepExtensions = true;
 
-    fs.unlinkSync(filePath);
-    
-    res.status(200).json({ 
-      message: 'Extraction complete!', 
-      links: linksArray
+    // Parse uploaded PDF
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
     });
 
+    const file = files.file?.[0] || files.file; // for different formidable versions
+    const filePath = file.filepath || file.path;
+
+    // Extract text + URLs
+    const { text, urls } = await extractTextAndLinks(filePath);
+
+    // Clean up temp file
+    fs.unlinkSync(filePath);
+
+    return res.status(200).json({
+      message: "PDF processed successfully",
+      urls,
+      textSnippet: text.slice(0, 500) + "...",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message || 'PDF extraction failed' });
+    console.error("Error extracting PDF:", error);
+    return res.status(500).json({ message: "Failed to extract PDF", error: error.message });
   }
 }
