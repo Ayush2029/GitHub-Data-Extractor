@@ -87,35 +87,6 @@ npm run dev
 ```
 The application will now be running at http://localhost:3000.
 
-## Data Flow
-1) User (Client): Uploads my_resume.pdf via the drag-and-drop UI.
-2) Frontend (index.js):
-- File is received. The status is set to uploading.
-- A POST request is sent to /api/extract with the PDF file in a FormData object.
-3) Backend (/api/extract.js):
-- formidable parses the incoming file stream.
-- pdfjs-dist opens the PDF file and iterates through all pages, reading their annotation data.
-- It filters these annotations to find all URLs that include github.com.
-- The API returns a JSON array of unique links: ["httpsfs://github.com/username", "https://github.com/username/repo"].
-4) Frontend (index.js):
-- Receives the array of links.
-- If no links are found, it shows an error.
-- If links are found, the status is set to fetching.
-- A new POST request is sent to /api/github-data with the JSON array of links.
-5) Backend (/api/github-data.js):
-- Receives the array of links.
-- It loops through the array, calling the official GitHub API for each link (using your GITHUB_TOKEN).
-- It intelligently distinguishes between profiles (/users/...) and repositories (/repos/...).
-- For each profile/repo, it fetches the raw README.md content.
-- The raw Markdown is passed through the marked library to be safely converted into clean HTML.
-- The API returns a large JSON array of objects, with each object containing all the profile/repo data and the parsed profileReadme HTML.
-6) Frontend (index.js):
-- Receives the final JSON data.
-- The status is set to ready.
-- The data is stored in state, causing React to render the <ProfileCard> and <RepoCard> components.
-- The prose class (from @tailwindcss/typography) automatically styles the README HTML rendered with dangerouslySetInnerHTML
-
-
 ## Usage
 Once the application is running:
 - Open http://localhost:3000 in your browser.
