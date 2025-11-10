@@ -114,3 +114,11 @@ The application will now be running at http://localhost:3000.
 - The status is set to ready.
 - The data is stored in state, causing React to render the <ProfileCard> and <RepoCard> components.
 - The prose class (from @tailwindcss/typography) automatically styles the README HTML rendered with dangerouslySetInnerHTML
+
+
+## Usage
+Once the application is running:
+- Open http://localhost:3000 in your browser.
+- Drag and drop a PDF file onto the upload zone, or click the zone to browse your files.
+- The application will automatically detect the file, show a "Uploading..." and then "Fetching..." status.
+- Once complete, the page will update to display the extracted GitHub profiles and repositories in clean, easy-to-read cards.
