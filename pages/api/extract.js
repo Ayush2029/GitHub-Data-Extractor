@@ -2,15 +2,31 @@ import fs from 'fs';
 import path from 'path';
 import formidable from 'formidable';
 
+// --- START OF FIX ---
+// Polyfill 'DOMMatrix' for the Node.js environment on Vercel
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class {
+    // This is a minimal mock. 
+    // We just need the class to exist for pdfjs-dist to import.
+  };
+}
+// --- END OF FIX ---
+
 export const config = {
   api: {
-    bodyParser: false, 
+    bodyParser: false, // required for formidable
   },
 };
 
+/**
+ * Extracts GitHub links from a PDF file.
+ */
 const extractHyperlinksFromPDF = async (filePath) => {
+  // Dynamically import pdfjs-dist
+  // Now, when this runs, it will find our mock globalThis.DOMMatrix
   const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
   
+  // Set up the path for standard fonts
   const standardFontsPath = path.join(
     process.cwd(),
     'node_modules/pdfjs-dist/standard_fonts/'
