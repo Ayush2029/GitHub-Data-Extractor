@@ -82,6 +82,8 @@ Add the copied token to your .env.local file:
 GITHUB_TOKEN=ghp_YourSecretTokenGoesHere...
 
 Step 4: Run the Development Server
+```
 npm run dev
+```
 The application will now be running at http://localhost:3000.
 
