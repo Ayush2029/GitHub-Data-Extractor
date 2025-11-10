@@ -4,18 +4,12 @@ import formidable from 'formidable';
 
 export const config = {
   api: {
-    bodyParser: false, // required for formidable
+    bodyParser: false, 
   },
 };
 
-/**
- * Extracts GitHub links from a PDF file.
- */
 const extractHyperlinksFromPDF = async (filePath) => {
-  // Dynamically import pdfjs-dist
   const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  
-  // Set up the path for standard fonts
   const standardFontsPath = path.join(
     process.cwd(),
     'node_modules/pdfjs-dist/standard_fonts/'
@@ -55,7 +49,6 @@ export default async function handler(req, res) {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ message: 'Only POST requests allowed' });
   }
-
   try {
     const form = formidable({ multiples: false });
     const [fields, files] = await form.parse(req);
