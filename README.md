@@ -32,4 +32,27 @@ A web app that automatically extracts GitHub links from a PDF (like a resume or 
 
 2) formidable: For robust handling of multipart/form-data file uploads.
 
-3) marked: For converting Markdown (like READMEs) into HTML.
+3) marked: For converting Markdown into HTML.
+
+# Project Structure
+
+Github-Data-Extractor/
+│
+├── pages/
+│   ├── api/
+│   │   ├── extract.js       # API route: Handles PDF upload and link extraction.
+│   │   └── github-data.js   # API route: Fetches and processes data from GitHub.
+│   │
+│   ├── _app.js              # Global App component (loads global CSS, fonts).
+│   └── index.js             # The main page (Uploader UI and Results Display).
+│
+├── styles/
+│   └── globals.css          # Tailwind CSS base styles.
+│
+├── .gitignore               # Files to ignore (e.g., node_modules, .env.local).
+├── next.config.js           # Next.js configuration.
+├── package.json             # Project metadata and dependencies.
+├── package-lock.json        # Records exact dependency versions.
+├── postcss.config.js        # Config for PostCSS (required by Tailwind).
+└── tailwind.config.js       # Tailwind CSS config (adds typography plugin).
+
