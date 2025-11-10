@@ -1,13 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef } from 'react'; 
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  FiFile, FiUpload, FiLoader, FiAlertTriangle, FiX, FiGithub,
-  FiUsers, FiUserPlus, FiStar, FiGitBranch, FiCode, FiBookOpen,
-  FiLink, FiTwitter, FiMapPin, FiCalendar
+import { 
+  FiFile, FiUpload, FiLoader, FiAlertTriangle, FiX, FiGithub, 
+  FiUsers, FiUserPlus, FiStar, FiGitBranch, FiCode, FiBookOpen, 
+  FiLink, FiTwitter, FiMapPin, FiCalendar 
 } from 'react-icons/fi';
-
-// --- StatCard, RepoCard, ProfileCard components are unchanged ---
-// (Assuming they are the same as the last version)
 
 const StatCard = ({ icon, label, value }) => (
   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
@@ -93,11 +90,13 @@ const ProfileCard = ({ data }) => {
             </a>
             <p className="text-gray-700 my-3">{data.bio}</p>
             
+            {/* Info Section */}
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
               {data.company && <span className="flex items-center gap-1.5"><FiMapPin /> {data.company}</span>}
               {data.created_at && <span className="flex items-center gap-1.5"><FiCalendar /> Joined {data.created_at}</span>}
             </div>
 
+            {/* Socials Section */}
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-blue-500 mt-3">
               {data.twitter && (
                 <a 
@@ -131,15 +130,20 @@ const ProfileCard = ({ data }) => {
           </div>
         </div>
         
+        {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <StatCard icon={<FiUsers />} label="Followers" value={data.followers.toLocaleString()} />
           <StatCard icon={<FiUserPlus />} label="Following" value={data.following.toLocaleString()} />
           <StatCard icon={<FiGithub />} label="Public Repos" value={data.public_repos.toLocaleString()} />
         </div>
         
+        {/* --- UPDATED: README Section --- */}
         {data.profileReadme && (
           <div className="mt-6 border-t border-gray-200 pt-5">
             <h4 className="font-semibold text-gray-800 mb-2">Profile README</h4>
+            {/* This renders the parsed HTML. 
+              The 'prose' class from @tailwindcss/typography handles all styling.
+            */}
             <div
               className="prose prose-sm prose-blue max-w-none text-gray-600"
               dangerouslySetInnerHTML={{ __html: data.profileReadme }}
@@ -148,6 +152,7 @@ const ProfileCard = ({ data }) => {
         )}
       </div>
       
+      {/* Top Repos Section */}
       {data.repos.length > 0 && (
         <div className="border-t border-gray-200 bg-gray-50 px-6 py-5">
           <h4 className="font-semibold text-gray-800 mb-3">Top Repositories</h4>
@@ -162,7 +167,7 @@ const ProfileCard = ({ data }) => {
                 <p className="font-semibold text-blue-600 truncate">{repo.name}</p>
                 <p className="text-xs text-gray-600 mt-1 truncate">{repo.description}</p>
                 <div className="flex items-center gap-3 text-xs text-gray-500 mt-2">
-                  <span className="flex items-center gap-1"><FiCode /> {data.language || 'N/A'}</span>
+                  <span className="flex items-center gap-1"><FiCode /> {repo.language || 'N/A'}</span>
                   <span className="flex items-center gap-1"><FiStar /> {repo.stars}</span>
                   <span className="flex items-center gap-1">Commits: {repo.commits}</span>
                 </div>
@@ -175,18 +180,14 @@ const ProfileCard = ({ data }) => {
   );
 };
 
-
-// --- Main Page Component ---
-
 export default function Home() {
   const [file, setFile] = useState(null);
-  const [status, setStatus] = useState('idle'); // 'idle' | 'uploading' | 'fetching' | 'ready' | 'error'
+  const [status, setStatus] = useState('idle'); 
   const [errorMessage, setErrorMessage] = useState('');
   const [githubData, setGithubData] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   
-  // --- UPDATED handleSubmit ---
   const handleSubmit = async (fileToProcess) => {
     if (!fileToProcess) return;
 
@@ -198,21 +199,13 @@ export default function Home() {
     formData.append('pdf', fileToProcess);
 
     try {
-      // Step 1: Extract links from PDF
-      // --- FIX: Removed the trailing slash ---
       const extractRes = await fetch('/api/extract', {
         method: 'POST',
         body: formData,
       });
 
-      // --- Check if response is ok BEFORE parsing JSON ---
-      if (!extractRes.ok) {
-        // Try to get server error text
-        const errorText = await extractRes.text();
-        throw new Error(`Failed to extract links: ${extractRes.status} ${errorText}`);
-      }
-      
       const extractData = await extractRes.json();
+      if (!extractRes.ok) throw new Error(extractData.error);
       
       if (!extractData.links || extractData.links.length === 0) {
         setErrorMessage('No GitHub links were found in this PDF.');
@@ -221,20 +214,15 @@ export default function Home() {
       }
       
       // Step 2: Fetch data from GitHub
-      // --- FIX: Removed the trailing slash ---
+      setStatus('fetching');
       const githubRes = await fetch('/api/github-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ links: extractData.links }),
       });
 
-      // --- Check if response is ok BEFORE parsing JSON ---
-      if (!githubRes.ok) {
-        const errorText = await githubRes.text();
-        throw new Error(`Failed to fetch GitHub data: ${githubRes.status} ${errorText}`);
-      }
-      
       const githubData = await githubRes.json();
+      if (!githubRes.ok) throw new Error(githubData.error);
       
       setGithubData(githubData);
       setStatus('ready');
@@ -244,8 +232,6 @@ export default function Home() {
       setStatus('error');
     }
   };
-  // --- END UPDATED handleSubmit ---
-
 
   // --- File Handlers ---
   
@@ -315,6 +301,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4 sm:p-8">
       
+      {/* --- Uploader Card --- */}
       <div className="w-full max-w-2xl">
         <motion.div
           layout
@@ -338,6 +325,7 @@ export default function Home() {
               disabled={status === 'uploading' || status === 'fetching'}
             />
 
+            {/* --- Uploader or Loading State --- */}
             <div className="relative">
               <AnimatePresence>
                 {(status === 'uploading' || status === 'fetching') && (
@@ -356,6 +344,7 @@ export default function Home() {
               <Uploader />
             </div>
 
+            {/* --- File Preview / Clear Button --- */}
             <AnimatePresence>
               {file && (
                 <motion.div
@@ -380,6 +369,7 @@ export default function Home() {
               )}
             </AnimatePresence>
             
+            {/* --- Error Message --- */}
             <AnimatePresence>
                {status === 'error' && (
                 <motion.div
@@ -399,6 +389,7 @@ export default function Home() {
         </motion.div>
       </div>
       
+      {/* --- Results Section --- */}
       <AnimatePresence>
         {status === 'ready' && githubData.length > 0 && (
           <motion.div 
