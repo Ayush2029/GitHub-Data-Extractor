@@ -6,7 +6,7 @@ A web app that automatically extracts GitHub links from a PDF (like a resume or 
 
 2) Dynamic Data Dashboard: Fetches detailed GitHub API data for every profile and repository found.
 
-3) Accurate README Parsing: Intelligently parses profile and repository README.md files using marked and renders them as clean, styled HTML.
+3) Accurate Parsing: Intelligently parses profile and repository README.md files using marked and renders them as clean, styled HTML.
 
 4) Modern UI/UX: A sleek, responsive, and animated UI built with Next.js, Tailwind CSS, and Framer Motion.
 
