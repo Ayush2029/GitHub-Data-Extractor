@@ -199,7 +199,8 @@ export default function Home() {
 
     try {
       // Step 1: Extract links from PDF
-      const extractRes = await fetch('/api/extract', {
+      // --- FIX: Added a trailing slash to the URL ---
+      const extractRes = await fetch('/api/extract/', {
         method: 'POST',
         body: formData,
       });
@@ -221,8 +222,8 @@ export default function Home() {
       }
       
       // Step 2: Fetch data from GitHub
-      setStatus('fetching');
-      const githubRes = await fetch('/api/github-data', {
+      // --- FIX: Added a trailing slash to the URL ---
+      const githubRes = await fetch('/api/github-data/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ links: extractData.links }),
