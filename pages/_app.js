@@ -1,7 +1,6 @@
 import '../styles/globals.css';
 import { Inter } from 'next/font/google';
 
-// Configure the Inter font for a professional look
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
