@@ -56,12 +56,18 @@ Follow these instructions to get the project running on your local machine.
 - GitHub Personal Access Token: You must have a GitHub token for the API to work.
 2. Installation
 - Clone the Repository
+```
 git clone https://github.com/your-username/github-data-extractor.git
 cd github-data-extractor
+```
 - Install Dependencies This command reads package.json and installs all the required libraries into the node_modules folder.
+```
 npm install
+```
 - Create Environment File You must create a local environment file to store your GitHub API token. This file is private and should never be committed to Git.
+```
 touch .env.local
+```
 
 Now, open the .env.local file and add your GitHub token.
 How to get a GitHub Token:
