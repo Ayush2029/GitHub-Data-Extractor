@@ -1,11 +1,8 @@
 import { marked } from 'marked';
 
-// --- GitHub API Fetchers ---
-
 const GITHUB_API_URL = 'https://api.github.com';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Make sure this is in .env.local
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN; 
 
-/** Fetches data with auth headers */
 async function fetchGitHubAPI(endpoint) {
   try {
     const response = await fetch(`${GITHUB_API_URL}${endpoint}`, {
@@ -28,7 +25,6 @@ async function fetchGitHubAPI(endpoint) {
   }
 }
 
-/** Fetches the raw text content of a README.md file */
 async function fetchReadme(owner, repo) {
   const readme = await fetchGitHubAPI(`/repos/${owner}/${repo}/readme`);
   if (!readme || !readme.content) return null;
@@ -39,28 +35,22 @@ async function fetchReadme(owner, repo) {
   }
 }
 
-/**
- * Gets a brief summary, using marked to parse, then stripping HTML.
- */
 function getBriefSummary(description, readmeContent) {
   if (description) {
-    // Just in case description has markdown
     const html = marked.parse(description);
-    const text = html.replace(/<[^>]*>/g, ' '); // Strip HTML tags
-    return text.replace(/\s{2,}/g, ' ').trim(); // Collapse whitespace
+    const text = html.replace(/<[^>]*>/g, ' '); 
+    return text.replace(/\s{2,}/g, ' ').trim(); 
   } 
   
   if (!readmeContent) return 'No description provided.';
-  
-  // Parse README to HTML, then strip tags for plain text
+
   const html = marked.parse(readmeContent);
-  const text = html.replace(/<[^>]*>/g, ' '); // Strip HTML tags
-  const stripped = text.replace(/\s{2,}/g, ' ').trim(); // Collapse whitespace
+  const text = html.replace(/<[^>]*>/g, ' '); 
+  const stripped = text.replace(/\s{2,}/g, ' ').trim(); 
 
   return stripped.substring(0, 250) + (stripped.length > 250 ? '...' : '');
 }
 
-/** Fetches comprehensive data for a single user profile */
 async function getProfileData(username) {
   const user = await fetchGitHubAPI(`/users/${username}`);
   if (!user) return null;
@@ -112,13 +102,11 @@ async function getProfileData(username) {
     twitter: user.twitter_username,
     socials: socials || [],
     created_at: new Date(user.created_at).toLocaleDateString(),
-    // Pass the parsed HTML to the frontend
     profileReadme: profileReadmeText ? marked.parse(profileReadmeText) : null,
     repos: processedRepos.slice(0, 6),
   };
 }
 
-/** Fetches comprehensive data for a single repository */
 async function getRepoData(owner, repo) {
   const repoData = await fetchGitHubAPI(`/repos/${owner}/${repo}`);
   if (!repoData) return null;
@@ -140,7 +128,6 @@ async function getRepoData(owner, repo) {
     name: repoData.name,
     fullName: repoData.full_name,
     description: getBriefSummary(repoData.description, readmeContent),
-    // Pass the parsed HTML to the frontend
     readme: readmeContent ? marked.parse(readmeContent) : null,
     url: repoData.html_url,
     owner: repoData.owner.login,
@@ -152,9 +139,6 @@ async function getRepoData(owner, repo) {
     topContributors: topContributors,
   };
 }
-
-
-// --- API Handler ---
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
