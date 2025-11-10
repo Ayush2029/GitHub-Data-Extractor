@@ -1,31 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 import formidable from 'formidable';
-
-import { getDocument } from 'pdfjs-dist/build/pdf.mjs';
-
 export const config = {
   api: {
-    bodyParser: false, // required for formidable
+    bodyParser: false, 
   },
 };
 
-/**
- * Extracts GitHub links from a PDF file.
- */
 const extractHyperlinksFromPDF = async (filePath) => {
-  // We no longer need the dynamic import here.
-  
-  // Set up the path for standard fonts
+  const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const standardFontsPath = path.join(
-    process.cwd(), // This path is correct for Vercel
+    process.cwd(),
     'node_modules/pdfjs-dist/standard_fonts/'
   );
 
   const data = new Uint8Array(fs.readFileSync(filePath));
   
-  // Use the statically imported 'getDocument'
-  const pdf = await getDocument({
+  const pdf = await pdfjsLib.getDocument({
     data,
     standardFontDataUrl: standardFontsPath,
   }).promise;
